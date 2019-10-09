@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Prueba consulta</title>
+</head>
+
+<body onload="iniciar()">
+  <select id="locality-dropdown" onchange="cargarCategorias()" name="locality">
+    <option value="AB">Dimensiones</option>
+  </select>
+
+  <select id="dropdown-categorias" onchange="cargarSubcategorias()" name="categoty">
+    <option value="defecto">Categorias</option>
+  </select>
+
+  <select id="dropdown-subcategorias" onchange="cargarIndicadores()" name="subcate">
+    <option value="defecto">Subcategorias</option>
+  </select>
+
+  <select id="dropdown-indicadores" onchange="cargarSubniv()" name="indica">
+    <option value="defecto">Indicadores</option>
+  </select>
+
+  <select id="dropdown-indiniv1" onchange="cargarSubniv2()" name="indiniv1">
+    <option value="defecto">Indicadores Nivel 1</option>
+  </select>
+
+  <select id="dropdown-indiniv2" onchange="cargarSubniv3()" name="indiniv3">
+    <option value="defecto">Indicadores Nivel 2</option>
+  </select>
+
+  <select id="dropdown-indiniv3" onchange="cargarSubniv4()" name="indiniv3">
+    <option value="defecto">Indicadores Nivel 3</option>
+  </select>
+
+  <select id="dropdown-indiniv4" name="indiniv4">
+    <option value="defecto">Indicadores Nivel 4</option>
+  </select>
+
+  <select id="dropdown-territorios" onchange="cargarPeriodo()" name="categoty">
+    <option value="defecto">Territorios</option>
+  </select>
+
+  <select id="dropdown-periodos" onchange="cargarImagen()" name="categoty">
+    <option value="defecto">Periodos</option>
+  </select>
+
+  <canvas id="bar-chart" width="800" height="450"></canvas>
+
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<script>
+
+  var dimensionSeleccionada;
+  var valorVariable;
+  var nombreIndicador;
+  var periodoSeleccionado;
+  var lugar;
+
+  function iniciar() {
+
+
+    let dropdown = document.getElementById('locality-dropdown');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Escoge una dimensíon';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    const url = 'http://localhost/sitws/dimension/all.php';
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].iddimensiones;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+      });
+  }
+
+  function cargarCategorias() {
+
+    let dimensiones = document.getElementById("locality-dropdown");
+    let idSeleccionada = dimensiones.options[dimensiones.selectedIndex].value;
+
+    console.log(idSeleccionada);
+
+    let dropdown = document.getElementById('dropdown-categorias');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Escoge una categoria';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    //const url = 'http://localhost/sitws/categoria/all.php' + idSeleccionada;
+    const url = 'http://localhost/sitws/categoria/search.php?id=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].idcategorias;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+      });
+  }
+
+  function cargarSubcategorias() {
+
+    let subcat = document.getElementById("dropdown-categorias");
+    let idSeleccionada = subcat.options[subcat.selectedIndex].value;
+
+    console.log(idSeleccionada);
+
+    let dropdown = document.getElementById('dropdown-subcategorias');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Escoge una subcategoria';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    const url = 'http://localhost/sitws/categoria/subcat.php?id=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; odata=verbose'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].idcategorias;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+      });
+  }
+
+  function cargarIndicadores() {
+
+    let indica = document.getElementById("dropdown-subcategorias");
+    let idSeleccionada = indica.options[indica.selectedIndex].value;
+
+    console.log(idSeleccionada);
+
+    let dropdown = document.getElementById('dropdown-indicadores');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Escoge un indicador';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    const url = 'http://localhost/sitws/indicador/search.php?id=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; odata=verbose'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].idindicadores;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+      });
+  }
+  function cargarSubniv() {
+
+    let indica = document.getElementById("dropdown-indicadores");
+    let idSeleccionada = indica.options[indica.selectedIndex].value;
+
+    console.log(idSeleccionada);
+
+    let dropdown = document.getElementById('dropdown-indiniv1');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Indicador de nivel 1';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    const url = 'http://localhost/sitws/indicador/subniv.php?id=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; odata=verbose'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].idindicadores;
+              dropdown.add(option);
+            }
+          })
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+        console.log('No hay subniveles');
+        localStorage.setItem('idindicador', idSeleccionada);
+        cargarTerritorio();
+      });
+  }
+  function cargarSubniv2() {
+
+    let indica = document.getElementById("dropdown-indiniv1");
+    let idSeleccionada = indica.options[indica.selectedIndex].value;
+
+    console.log(idSeleccionada);
+
+    let dropdown = document.getElementById('dropdown-indiniv2');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Indicador de nivel 2';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    const url = 'http://localhost/sitws/indicador/subniv.php?id=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; odata=verbose'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].idindicadores;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+        console.log('No hay subniveles');
+        localStorage.setItem('idindicador', idSeleccionada);
+        cargarTerritorio();
+      });
+  }
+  function cargarSubniv3() {
+
+    let indica = document.getElementById("dropdown-indiniv2");
+    let idSeleccionada = indica.options[indica.selectedIndex].value;
+
+    console.log(idSeleccionada);
+
+    let dropdown = document.getElementById('dropdown-indiniv3');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Indicador de nivel 3';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    const url = 'http://localhost/sitws/indicador/subniv.php?id=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; odata=verbose'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].idindicadores;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+        console.log('No hay subniveles');
+        localStorage.setItem('idindicador', idSeleccionada);
+        cargarTerritorio();
+      });
+  }
+  function cargarSubniv4() {
+
+    let indica = document.getElementById("dropdown-indiniv3");
+    let idSeleccionada = indica.options[indica.selectedIndex].value;
+
+    console.log(idSeleccionada);
+
+    let dropdown = document.getElementById('dropdown-indiniv4');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Indicador de nivel 4';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    const url = 'http://localhost/sitws/indicador/subniv.php?id=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; odata=verbose'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].idindicadores;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+        console.log('No hay subniveles');
+        localStorage.setItem('idindicador', idSeleccionada);
+        cargarTerritorio();
+      });
+  }
+
+  function cargarTerritorio() {
+
+    let indica = document.getElementById("dropdown-indicadores");
+    nombreIndicador = indica.options[indica.selectedIndex].text;
+
+    let dropdown = document.getElementById('dropdown-territorios');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Escoger territorio';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    var idSeleccionada = localStorage.getItem('idindicador');
+
+    const url = 'http://localhost/sitws/indicaterri/search.php?id=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; odata=verbose'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].nombre;
+              option.value = data[i].codigo_dane;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+      });
+  }
+
+  function cargarPeriodo() {
+
+    let indica = document.getElementById("dropdown-territorios");
+    let idSeleccionada = indica.options[indica.selectedIndex].value;
+    lugar = indica.options[indica.selectedIndex].text;
+
+    console.log(idSeleccionada);
+
+    let dropdown = document.getElementById('dropdown-periodos');
+    dropdown.length = 0;
+
+    let defaultOption = document.createElement('option');
+    defaultOption.text = 'Periodo';
+
+    dropdown.add(defaultOption);
+    dropdown.selectedIndex = 0;
+
+    // let sentencia = idSeleccionada + " AND territorios_codigo_dane = " + localStorage.getItem('idindicador');
+    let sentencia = localStorage.getItem('idindicador');
+    const url = 'http://localhost/sitws/periodo/search.php?id=' + sentencia + '&dane=' + idSeleccionada;
+
+    fetch(url, {
+      method: 'GET', // or 'PUT'
+      // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; odata=verbose'
+      }
+    })
+      .then(
+        function (response) {
+          if (response.status !== 200) {
+            console.warn('Parece que hay un problema. Status Code: ' +
+              response.status);
+            return;
+          }
+          // Examine the text in the response  
+          response.json().then(function (data) {
+            let option;
+
+            for (let i = 0; i < data.length; i++) {
+              option = document.createElement('option');
+              option.text = data[i].periodo;
+              option.value = data[i].valor;
+              dropdown.add(option);
+            }
+          });
+        }
+      )
+      .catch(function (err) {
+        console.error('Fetch Error -', err);
+      });
+
+  }
+
+  function cargarImagen() {
+
+    let periodo = document.getElementById("dropdown-periodos");
+    valorVariable = periodo.options[periodo.selectedIndex].value;
+    valorParseado = valorVariable.replace(/\./g, '').replace(',', '.');
+    console.log(valorParseado);
+
+    new Chart(document.getElementById("bar-chart"), {
+      type: 'bar',
+      data: {
+        labels: [lugar],
+        datasets: [
+          {
+            label: nombreIndicador,
+            backgroundColor: ["#3e95cd"],
+            data: [valorParseado]
+          }
+        ]
+      },
+      options: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: nombreIndicador
+        }
+      }
+    });
+  }
+
+</script>
+
+</html>
